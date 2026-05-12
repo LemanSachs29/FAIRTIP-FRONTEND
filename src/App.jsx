@@ -1,4 +1,13 @@
 import React from 'react';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
 
 import { FtTheme } from './components/ui/Theme.jsx';
 import { FtSidebar } from './components/ui/Sidebar.jsx';
@@ -16,120 +25,184 @@ import { FtEmployeeDetail } from './pages/EmployeeDetail.jsx';
 import { FtDistributions, FtNewDistribution } from './pages/Distributions.jsx';
 import { FtDistributionDetail } from './pages/DistributionDetail.jsx';
 
-// Fairtip — App shell. Wires together every screen as a click-through prototype.
-const FtApp = () => {
-  const [authView, setAuthView] = React.useState('app');
-  const [view, setView] = React.useState({ name: 'dashboard' });
+const NewDistributionContext = React.createContext({ openNewDistribution: () => {} });
+
+const useNewDistribution = () => React.useContext(NewDistributionContext);
+
+const FtApp = () => (
+  <BrowserRouter>
+    <FtTheme palette="charcoal" font="plex" />
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={<LoginRoute />} />
+      <Route path="/register" element={<RegisterRoute />} />
+      <Route path="/dashboard" element={<AppShell><DashboardRoute /></AppShell>} />
+      <Route path="/employees" element={<AppShell><EmployeesRoute /></AppShell>} />
+      <Route path="/employees/:id" element={<AppShell><EmployeeDetailRoute /></AppShell>} />
+      <Route path="/distributions" element={<AppShell><DistributionsRoute /></AppShell>} />
+      <Route path="/distributions/:id" element={<AppShell><DistributionDetailRoute /></AppShell>} />
+      <Route path="/absences" element={<AppShell><AbsencesRoute /></AppShell>} />
+      <Route path="/settings" element={<AppShell><SettingsRoute /></AppShell>} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  </BrowserRouter>
+);
+
+const LoginRoute = () => {
+  const navigate = useNavigate();
+
+  return (
+    <FtLogin
+      onSwitch={(mode) => navigate(mode === 'register' ? '/register' : '/login')}
+      onLogin={() => navigate('/dashboard')}
+    />
+  );
+};
+
+const RegisterRoute = () => {
+  const navigate = useNavigate();
+
+  return (
+    <FtRegister
+      onSwitch={(mode) => navigate(mode === 'login' ? '/login' : '/register')}
+      onRegister={() => navigate('/dashboard')}
+    />
+  );
+};
+
+const AppShell = ({ children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [showNewDist, setShowNewDist] = React.useState(false);
+  const route = getRouteState(location.pathname);
 
-  const nav = (key) => setView({ name: key });
-  const openEmployee = (id) => setView({ name: 'employee', id });
-  const openDistribution = (id) => setView({ name: 'distribution', id });
-
-  if (authView === 'login') {
-    return <>
-      <FtTheme palette="charcoal" font="plex" />
-      <FtLogin onSwitch={setAuthView} onLogin={() => setAuthView('app')} />
-    </>;
-  }
-  if (authView === 'register') {
-    return <>
-      <FtTheme palette="charcoal" font="plex" />
-      <FtRegister onSwitch={setAuthView} onRegister={() => setAuthView('app')} />
-    </>;
-  }
-
-  const crumbs = (() => {
-    switch (view.name) {
+  const crumbs = React.useMemo(() => {
+    switch (route.name) {
       case 'dashboard':     return ['Dashboard'];
       case 'employees':     return ['Employees'];
       case 'employee':      return ['Employees', 'Maria Lopez'];
       case 'distributions': return ['Distributions'];
-      case 'distribution':  return ['Distributions', '#' + view.id.toString().padStart(4,'0')];
+      case 'distribution':  return ['Distributions', '#' + route.id.toString().padStart(4, '0')];
       case 'absences':      return ['Absences'];
       case 'settings':      return ['Settings'];
       default: return ['Dashboard'];
     }
-  })();
-
-  let body = null;
-  switch (view.name) {
-    case 'dashboard':
-      body = <FtDashboard
-        onNewDistribution={() => setShowNewDist(true)}
-        onOpenDistribution={openDistribution}
-      />; break;
-    case 'employees':
-      body = <FtEmployees onOpenEmployee={openEmployee} />; break;
-    case 'employee':
-      body = <FtEmployeeDetail employeeId={view.id} onBack={() => nav('employees')} />; break;
-    case 'distributions':
-      body = <FtDistributions onNew={() => setShowNewDist(true)} onOpenDistribution={openDistribution} />; break;
-    case 'distribution':
-      body = <FtDistributionDetail distributionId={view.id} onBack={() => nav('distributions')} />; break;
-    case 'absences':
-      body = (
-        <div>
-          <div className="page-h"><div className="titles"><h1>Absences</h1><div className="sub">All absences across employees.</div></div></div>
-          <FtCard><FtEmpty icon="calendar-x" title="Calendar view coming soon."
-            body="For now, register absences inside an employee's profile."
-            action={<FtButton variant="primary" icon="users" onClick={() => nav('employees')}>Go to employees</FtButton>} />
-          </FtCard>
-        </div>
-      ); break;
-    case 'settings':
-      body = (
-        <div>
-          <div className="page-h"><div className="titles"><h1>Settings</h1><div className="sub">Workspace and currency.</div></div></div>
-          <div className="grid-2">
-            <FtCard title="Workspace">
-              <div className="field" style={{marginBottom: 16}}>
-                <label className="l">Display name</label>
-                <input className="inp" defaultValue="Trattoria San Marco" />
-              </div>
-              <div className="field">
-                <label className="l">Default currency</label>
-                <select className="inp"><option>EUR — €</option><option>USD — $</option><option>GBP — £</option></select>
-              </div>
-            </FtCard>
-            <FtCard title="Rounding">
-              <div className="field" style={{marginBottom: 16}}>
-                <label className="l">Display precision</label>
-                <select className="inp"><option>2 decimals</option><option>4 decimals</option></select>
-              </div>
-              <div className="field">
-                <label className="l">Apply remainder to</label>
-                <select className="inp"><option>Largest share</option><option>Random employee</option><option>Carry over</option></select>
-              </div>
-            </FtCard>
-          </div>
-        </div>
-      ); break;
-    default: body = <div>Not found.</div>;
-  }
+  }, [route]);
 
   return (
-    <>
-      <FtTheme palette="charcoal" font="plex" />
+    <NewDistributionContext.Provider value={{ openNewDistribution: () => setShowNewDist(true) }}>
       <div className="app">
-        <FtSidebar
-          active={view.name === 'employee' ? 'employees' : view.name === 'distribution' ? 'distributions' : view.name}
-          onNav={nav}
-          onSignOut={() => setAuthView('login')}
-        />
+        <FtSidebar active={route.active} onSignOut={() => navigate('/login')} />
         <main className="main">
           <FtTopbar crumbs={crumbs} />
-          <div className="page">{body}</div>
+          <div className="page">{children}</div>
         </main>
         {showNewDist && (
           <FtNewDistribution
             onCancel={() => setShowNewDist(false)}
-            onCreate={({start, end, total}) => { setShowNewDist(false); openDistribution(13); }}
+            onCreate={() => { setShowNewDist(false); navigate('/distributions/13'); }}
           />
         )}
       </div>
-    </>
+    </NewDistributionContext.Provider>
   );
+};
+
+const DashboardRoute = () => {
+  const navigate = useNavigate();
+  const { openNewDistribution } = useNewDistribution();
+
+  return (
+    <FtDashboard
+      onNewDistribution={openNewDistribution}
+      onOpenDistribution={(id) => navigate(`/distributions/${id}`)}
+    />
+  );
+};
+
+const EmployeesRoute = () => {
+  const navigate = useNavigate();
+
+  return <FtEmployees onOpenEmployee={(id) => navigate(`/employees/${id}`)} />;
+};
+
+const EmployeeDetailRoute = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  return <FtEmployeeDetail employeeId={id} onBack={() => navigate('/employees')} />;
+};
+
+const DistributionsRoute = () => {
+  const navigate = useNavigate();
+  const { openNewDistribution } = useNewDistribution();
+
+  return (
+    <FtDistributions
+      onNew={openNewDistribution}
+      onOpenDistribution={(id) => navigate(`/distributions/${id}`)}
+    />
+  );
+};
+
+const DistributionDetailRoute = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  return <FtDistributionDetail distributionId={id} onBack={() => navigate('/distributions')} />;
+};
+
+const AbsencesRoute = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div>
+      <div className="page-h"><div className="titles"><h1>Absences</h1><div className="sub">All absences across employees.</div></div></div>
+      <FtCard><FtEmpty icon="calendar-x" title="Calendar view coming soon."
+        body="For now, register absences inside an employee's profile."
+        action={<FtButton variant="primary" icon="users" onClick={() => navigate('/employees')}>Go to employees</FtButton>} />
+      </FtCard>
+    </div>
+  );
+};
+
+const SettingsRoute = () => (
+  <div>
+    <div className="page-h"><div className="titles"><h1>Settings</h1><div className="sub">Workspace and currency.</div></div></div>
+    <div className="grid-2">
+      <FtCard title="Workspace">
+        <div className="field" style={{marginBottom: 16}}>
+          <label className="l">Display name</label>
+          <input className="inp" defaultValue="Trattoria San Marco" />
+        </div>
+        <div className="field">
+          <label className="l">Default currency</label>
+          <select className="inp"><option>EUR — €</option><option>USD — $</option><option>GBP — £</option></select>
+        </div>
+      </FtCard>
+      <FtCard title="Rounding">
+        <div className="field" style={{marginBottom: 16}}>
+          <label className="l">Display precision</label>
+          <select className="inp"><option>2 decimals</option><option>4 decimals</option></select>
+        </div>
+        <div className="field">
+          <label className="l">Apply remainder to</label>
+          <select className="inp"><option>Largest share</option><option>Random employee</option><option>Carry over</option></select>
+        </div>
+      </FtCard>
+    </div>
+  </div>
+);
+
+const getRouteState = (pathname) => {
+  if (pathname.startsWith('/employees/')) return { name: 'employee', active: 'employees', id: pathname.split('/')[2] || '' };
+  if (pathname.startsWith('/distributions/')) return { name: 'distribution', active: 'distributions', id: pathname.split('/')[2] || '' };
+  if (pathname.startsWith('/employees')) return { name: 'employees', active: 'employees' };
+  if (pathname.startsWith('/distributions')) return { name: 'distributions', active: 'distributions' };
+  if (pathname.startsWith('/absences')) return { name: 'absences', active: 'absences' };
+  if (pathname.startsWith('/settings')) return { name: 'settings', active: 'settings' };
+
+  return { name: 'dashboard', active: 'dashboard' };
 };
 
 export default FtApp;
