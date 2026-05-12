@@ -1,27 +1,60 @@
 import React from 'react';
 
-// Fairtip — Employees list + create modal
-const SEED_EMPLOYEES = [
-  { id: 1, name: 'Maria',  surname: 'Lopez',    avg: '8.50', daysOff: ['Monday'],          absences: 1 },
-  { id: 2, name: 'Andrés', surname: 'Vega',     avg: '7.50', daysOff: ['Sunday'],          absences: 0 },
-  { id: 3, name: 'Sofía',  surname: 'Ruiz',     avg: '8.00', daysOff: ['Sunday','Monday'], absences: 2 },
-  { id: 4, name: 'Pedro',  surname: 'Martín',   avg: '8.00', daysOff: ['Tuesday'],         absences: 0 },
-  { id: 5, name: 'Lucía',  surname: 'Herrera',  avg: '6.00', daysOff: ['Wednesday'],       absences: 1 },
-  { id: 6, name: 'Diego',  surname: 'Fernández',avg: '8.50', daysOff: ['Thursday'],        absences: 0 },
-  { id: 7, name: 'Elena',  surname: 'Castro',   avg: '7.00', daysOff: ['Monday','Tuesday'],absences: 0 },
-  { id: 8, name: 'Tomás',  surname: 'Reyes',    avg: '8.00', daysOff: ['Sunday'],          absences: 0 },
-];
+import { createEmployee, getEmployees } from '../services/employees.js';
 
+// Fairtip - Employees list + create modal
 const FtEmployees = ({ onOpenEmployee }) => {
-  const [list, setList] = React.useState(SEED_EMPLOYEES);
+  const [list, setList] = React.useState([]);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({ name: '', surname: '', avg: '8.00' });
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState('');
+  const [createError, setCreateError] = React.useState('');
+  const [isCreating, setIsCreating] = React.useState(false);
 
-  const submit = () => {
-    if (!form.name.trim() || !form.surname.trim()) return;
-    setList([...list, { id: Date.now(), name: form.name, surname: form.surname, avg: form.avg, daysOff: [], absences: 0 }]);
-    setForm({ name: '', surname: '', avg: '8.00' });
+  const loadEmployees = React.useCallback(async () => {
+    setIsLoading(true);
+    setLoadError('');
+
+    try {
+      const data = await getEmployees();
+      setList(Array.isArray(data) ? data : data?.employees || []);
+    } catch (err) {
+      setLoadError(err?.message || 'Unable to load employees.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadEmployees();
+  }, [loadEmployees]);
+
+  const closeModal = () => {
     setOpen(false);
+    setCreateError('');
+  };
+
+  const submit = async () => {
+    if (!form.name.trim() || !form.surname.trim()) return;
+
+    setCreateError('');
+    setIsCreating(true);
+
+    try {
+      await createEmployee({
+        name: form.name.trim(),
+        surname: form.surname.trim(),
+        average_daily_hours: form.avg,
+      });
+      await loadEmployees();
+      setForm({ name: '', surname: '', avg: '8.00' });
+      setOpen(false);
+    } catch (err) {
+      setCreateError(err?.message || 'Unable to create employee.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -37,53 +70,57 @@ const FtEmployees = ({ onOpenEmployee }) => {
         </div>
       </div>
 
-      <FtCard flush>
-        <table className="tbl">
-          <thead><tr>
-            <th>Employee</th>
-            <th className="r">Avg. daily hours</th>
-            <th>Regular days off</th>
-            <th className="r">Absences (30d)</th>
-            <th style={{width: 40}}></th>
-          </tr></thead>
-          <tbody>
-            {list.map(e => (
-              <tr key={e.id} onClick={() => onOpenEmployee && onOpenEmployee(e.id)}>
-                <td>
-                  <div className="name">{e.name} {e.surname}</div>
-                  <div className="sub">#{e.id.toString().padStart(4,'0')}</div>
-                </td>
-                <td className="r">{e.avg}h</td>
-                <td>
-                  {e.daysOff.length === 0
-                    ? <span className="muted">—</span>
-                    : <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
-                        {e.daysOff.map(d => <FtBadge key={d} tone="neutral">{d.slice(0,3)}</FtBadge>)}
-                      </div>}
-                </td>
-                <td className="r">
-                  {e.absences === 0
-                    ? <span className="muted">0</span>
-                    : <FtBadge tone="warning">{e.absences}</FtBadge>}
-                </td>
-                <td onClick={(ev) => ev.stopPropagation()}>
-                  <FtIconButton icon="more-horizontal" label="Row actions" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <FtCard flush={!isLoading && !loadError && list.length > 0}>
+        {isLoading ? (
+          <FtEmpty icon="loader" title="Loading employees..." body="Fetching the latest staff list." />
+        ) : loadError ? (
+          <FtEmpty
+            icon="circle-alert"
+            title="Could not load employees."
+            body={loadError}
+            action={<FtButton variant="secondary" onClick={loadEmployees}>Try again</FtButton>}
+          />
+        ) : list.length === 0 ? (
+          <FtEmpty icon="users" title="No employees yet." body="Add your first employee to start building distributions." />
+        ) : (
+          <table className="tbl">
+            <thead><tr>
+              <th>Employee</th>
+              <th className="r">Avg. daily hours</th>
+              <th>Regular days off</th>
+              <th className="r">Absences (30d)</th>
+              <th style={{width: 40}}></th>
+            </tr></thead>
+            <tbody>
+              {list.map(e => (
+                <tr key={e.id} onClick={() => onOpenEmployee && onOpenEmployee(e.id)}>
+                  <td>
+                    <div className="name">{e.name} {e.surname}</div>
+                    <div className="sub">#{e.id.toString().padStart(4,'0')}</div>
+                  </td>
+                  <td className="r">{e.average_daily_hours}h</td>
+                  <td><span className="muted">-</span></td>
+                  <td className="r"><span className="muted">0</span></td>
+                  <td onClick={(ev) => ev.stopPropagation()}>
+                    <FtIconButton icon="more-horizontal" label="Row actions" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </FtCard>
 
       {open && (
         <FtModal
           title="Add employee"
-          onClose={() => setOpen(false)}
+          onClose={closeModal}
           footer={<>
-            <FtButton variant="secondary" onClick={() => setOpen(false)}>Cancel</FtButton>
-            <FtButton variant="primary" onClick={submit}>Create employee</FtButton>
+            <FtButton variant="secondary" onClick={closeModal} disabled={isCreating}>Cancel</FtButton>
+            <FtButton variant="primary" onClick={submit} disabled={isCreating}>{isCreating ? 'Creating...' : 'Create employee'}</FtButton>
           </>}
         >
+          {createError && <div className="auth-error" role="alert" style={{marginBottom: 16}}>{createError}</div>}
           <div className="grid-2">
             <div className="field">
               <label className="l">Name</label>
