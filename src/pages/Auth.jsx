@@ -36,27 +36,44 @@ const FtAuthShell = ({ children, mode = 'login', onSwitch }) => (
 
 const FtLogin = ({ onSwitch, onLogin }) => {
   const [email, setEmail] = React.useState('manager@trattoria.example');
-  const [pass, setPass]   = React.useState('••••••••••');
+  const [pass, setPass]   = React.useState('');
+  const [error, setError] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      await onLogin(email, pass);
+    } catch (err) {
+      setError(err?.message || 'Unable to log in. Please check your credentials.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <FtAuthShell mode="login" onSwitch={onSwitch}>
       <h1 className="auth-title">Welcome back</h1>
       <p className="auth-sub">Log in to your Fairtip workspace.</p>
-      <form className="auth-form" onSubmit={(e)=>{e.preventDefault(); onLogin();}}>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        {error && <div className="auth-error" role="alert">{error}</div>}
         <div className="field">
           <label className="l">Work email</label>
-          <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" />
+          <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" required />
         </div>
         <div className="field">
           <div className="row" style={{justifyContent:'space-between'}}>
             <label className="l">Password</label>
             <a href="#" className="auth-link-sm" onClick={e=>e.preventDefault()}>Forgot?</a>
           </div>
-          <input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} autoComplete="current-password" />
+          <input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} autoComplete="current-password" required />
         </div>
         <label className="auth-check">
           <input type="checkbox" defaultChecked /> Keep me signed in on this device
         </label>
-        <FtButton variant="primary" type="submit">Log in</FtButton>
+        <FtButton variant="primary" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Logging in...' : 'Log in'}</FtButton>
       </form>
       <div className="auth-divider"><span>or</span></div>
       <button className="btn btn-secondary auth-sso" type="button">
@@ -67,65 +84,48 @@ const FtLogin = ({ onSwitch, onLogin }) => {
 };
 
 const FtRegister = ({ onSwitch, onRegister }) => {
-  const [step, setStep] = React.useState(1);
   const [name, setName]   = React.useState('');
   const [email, setEmail] = React.useState('');
   const [pass, setPass]   = React.useState('');
-  const [biz, setBiz]     = React.useState('');
-  const [size, setSize]   = React.useState('5-15');
+  const [error, setError] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      await onRegister(email, pass);
+    } catch (err) {
+      setError(err?.message || 'Unable to create your account.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <FtAuthShell mode="register" onSwitch={onSwitch}>
-      <div className="auth-step">
-        <span className={step >= 1 ? 'on' : ''}>1 · You</span>
-        <span className="sep">·</span>
-        <span className={step >= 2 ? 'on' : ''}>2 · Restaurant</span>
-      </div>
-      <h1 className="auth-title">Create your workspace</h1>
+      <h1 className="auth-title">Create your account</h1>
       <p className="auth-sub">Free for 14 days. No card required.</p>
+      {error && <div className="auth-error" role="alert">{error}</div>}
 
-      {step === 1 ? (
-        <form className="auth-form" onSubmit={(e)=>{e.preventDefault(); setStep(2);}}>
-          <div className="field">
-            <label className="l">Your name</label>
-            <input className="inp" value={name} onChange={e=>setName(e.target.value)} placeholder="Maria Lopez" autoFocus />
-          </div>
-          <div className="field">
-            <label className="l">Work email</label>
-            <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@restaurant.com" />
-          </div>
-          <div className="field">
-            <label className="l">Password</label>
-            <input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="At least 10 characters" />
-            <div className="auth-hint">Use 10+ characters. We'll send a verification link.</div>
-          </div>
-          <FtButton variant="primary" type="submit">Continue</FtButton>
-        </form>
-      ) : (
-        <form className="auth-form" onSubmit={(e)=>{e.preventDefault(); onRegister();}}>
-          <div className="field">
-            <label className="l">Restaurant name</label>
-            <input className="inp" value={biz} onChange={e=>setBiz(e.target.value)} placeholder="Trattoria San Marco" autoFocus />
-          </div>
-          <div className="field">
-            <label className="l">Team size</label>
-            <select className="inp" value={size} onChange={e=>setSize(e.target.value)}>
-              <option>1-4</option><option>5-15</option><option>16-40</option><option>40+</option>
-            </select>
-          </div>
-          <div className="field">
-            <label className="l">Default currency</label>
-            <select className="inp" defaultValue="EUR — €"><option>EUR — €</option><option>USD — $</option><option>GBP — £</option></select>
-          </div>
-          <label className="auth-check">
-            <input type="checkbox" defaultChecked /> I agree to the Terms and Privacy Policy
-          </label>
-          <div className="row" style={{gap:8}}>
-            <FtButton variant="secondary" onClick={()=>setStep(1)}>Back</FtButton>
-            <FtButton variant="primary" type="submit">Create workspace</FtButton>
-          </div>
-        </form>
-      )}
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="field">
+          <label className="l">Your name</label>
+          <input className="inp" value={name} onChange={e=>setName(e.target.value)} placeholder="Maria Lopez" autoFocus />
+        </div>
+        <div className="field">
+          <label className="l">Work email</label>
+          <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@restaurant.com" required />
+        </div>
+        <div className="field">
+          <label className="l">Password</label>
+          <input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="At least 10 characters" required />
+          <div className="auth-hint">Use 10+ characters. We'll send a verification link.</div>
+        </div>
+        <FtButton variant="primary" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating...' : 'Create account'}</FtButton>
+      </form>
     </FtAuthShell>
   );
 };

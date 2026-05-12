@@ -12,11 +12,13 @@ import {
 import { FtTheme } from './components/ui/Theme.jsx';
 import { FtSidebar } from './components/ui/Sidebar.jsx';
 import { FtTopbar } from './components/ui/Topbar.jsx';
+import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import {
   FtButton,
   FtCard,
   FtEmpty,
 } from './components/ui/Primitives.jsx';
+import { login, logout, register } from './services/auth.js';
 
 import { FtLogin, FtRegister } from './pages/Auth.jsx';
 import { FtDashboard } from './pages/Dashboard.jsx';
@@ -36,13 +38,13 @@ const FtApp = () => (
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<LoginRoute />} />
       <Route path="/register" element={<RegisterRoute />} />
-      <Route path="/dashboard" element={<AppShell><DashboardRoute /></AppShell>} />
-      <Route path="/employees" element={<AppShell><EmployeesRoute /></AppShell>} />
-      <Route path="/employees/:id" element={<AppShell><EmployeeDetailRoute /></AppShell>} />
-      <Route path="/distributions" element={<AppShell><DistributionsRoute /></AppShell>} />
-      <Route path="/distributions/:id" element={<AppShell><DistributionDetailRoute /></AppShell>} />
-      <Route path="/absences" element={<AppShell><AbsencesRoute /></AppShell>} />
-      <Route path="/settings" element={<AppShell><SettingsRoute /></AppShell>} />
+      <Route path="/dashboard" element={<ProtectedRoute><AppShell><DashboardRoute /></AppShell></ProtectedRoute>} />
+      <Route path="/employees" element={<ProtectedRoute><AppShell><EmployeesRoute /></AppShell></ProtectedRoute>} />
+      <Route path="/employees/:id" element={<ProtectedRoute><AppShell><EmployeeDetailRoute /></AppShell></ProtectedRoute>} />
+      <Route path="/distributions" element={<ProtectedRoute><AppShell><DistributionsRoute /></AppShell></ProtectedRoute>} />
+      <Route path="/distributions/:id" element={<ProtectedRoute><AppShell><DistributionDetailRoute /></AppShell></ProtectedRoute>} />
+      <Route path="/absences" element={<ProtectedRoute><AppShell><AbsencesRoute /></AppShell></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><AppShell><SettingsRoute /></AppShell></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   </BrowserRouter>
@@ -54,7 +56,10 @@ const LoginRoute = () => {
   return (
     <FtLogin
       onSwitch={(mode) => navigate(mode === 'register' ? '/register' : '/login')}
-      onLogin={() => navigate('/dashboard')}
+      onLogin={async (email, password) => {
+        await login(email, password);
+        navigate('/dashboard', { replace: true });
+      }}
     />
   );
 };
@@ -65,7 +70,10 @@ const RegisterRoute = () => {
   return (
     <FtRegister
       onSwitch={(mode) => navigate(mode === 'login' ? '/login' : '/register')}
-      onRegister={() => navigate('/dashboard')}
+      onRegister={async (email, password) => {
+        await register(email, password);
+        navigate('/login', { replace: true });
+      }}
     />
   );
 };
@@ -92,7 +100,10 @@ const AppShell = ({ children }) => {
   return (
     <NewDistributionContext.Provider value={{ openNewDistribution: () => setShowNewDist(true) }}>
       <div className="app">
-        <FtSidebar active={route.active} onSignOut={() => navigate('/login')} />
+        <FtSidebar active={route.active} onSignOut={() => {
+          logout();
+          navigate('/login', { replace: true });
+        }} />
         <main className="main">
           <FtTopbar crumbs={crumbs} />
           <div className="page">{children}</div>
