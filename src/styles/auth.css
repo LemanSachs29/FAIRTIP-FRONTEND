@@ -1,0 +1,126 @@
+/* Fairtip Auth + Tweaks — added styles */
+
+/* ---------- Auth split layout ---------- */
+.auth {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+}
+.auth-side {
+  background: var(--surface-sunken);
+  border-right: 1px solid var(--border);
+  padding: 32px 36px;
+  display: flex; flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.auth-side::after {
+  content: ''; position: absolute; inset: auto -120px -120px auto;
+  width: 360px; height: 360px; border-radius: 999px;
+  background: var(--accent-soft); opacity: .6;
+  filter: blur(8px);
+}
+.auth-brand {
+  display: flex; align-items: center; gap: 10px;
+  font: var(--fw-semibold) 16px/1 var(--font-sans);
+  color: var(--fg-strong);
+  z-index: 1;
+}
+.auth-pitch { margin: auto 0; z-index: 1; max-width: 380px; }
+.auth-headline {
+  font: var(--fw-semibold) 28px/34px var(--font-sans);
+  letter-spacing: -0.015em;
+  color: var(--fg-strong);
+  margin: 0 0 12px;
+}
+.auth-blurb {
+  color: var(--fg-muted); font-size: 14px; line-height: 22px; margin: 0 0 24px;
+}
+.auth-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.auth-points li {
+  display: flex; align-items: center; gap: 10px;
+  font: 13px/18px var(--font-sans); color: var(--fg);
+}
+.auth-points li .ic { color: var(--accent); width: 16px; height: 16px; }
+.auth-foot { font-size: 12px; z-index: 1; }
+
+.auth-main {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+}
+.auth-card {
+  width: 100%; max-width: 380px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.auth-title {
+  font: var(--fw-semibold) 22px/28px var(--font-sans);
+  letter-spacing: -0.01em; color: var(--fg-strong); margin: 0;
+}
+.auth-sub { color: var(--fg-muted); font-size: 13px; margin: 4px 0 8px; }
+.auth-form { display: grid; gap: 14px; }
+.auth-form .btn-primary { width: 100%; height: 40px; justify-content: center; }
+.auth-link-sm { font-size: 12px; color: var(--accent); }
+.auth-check {
+  display: flex; align-items: center; gap: 8px;
+  font: 12px/18px var(--font-sans); color: var(--fg-muted);
+  user-select: none;
+}
+.auth-check input { accent-color: var(--accent); }
+.auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  font: 11px/14px var(--font-sans); color: var(--fg-subtle);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.auth-sso { width: 100%; height: 40px; justify-content: center; }
+.auth-swap { font-size: 13px; color: var(--fg-muted); text-align: center; }
+.auth-swap a { color: var(--accent); font-weight: 500; }
+.auth-hint { font: 12px/16px var(--font-sans); color: var(--fg-subtle); }
+.auth-step {
+  display: flex; align-items: center; gap: 8px;
+  font: var(--fw-medium) 11px/14px var(--font-sans);
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--fg-subtle);
+}
+.auth-step .on { color: var(--accent); }
+.auth-step .sep { color: var(--fg-subtle); }
+
+.sb-user { position: relative; }
+.sb-signout { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
+
+/* ---------- Tweaks helpers ---------- */
+.tw-swatches {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.tw-swatch {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding: 10px; border-radius: 8px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  text-align: left;
+  font: var(--fw-medium) 12px/16px var(--font-sans);
+  color: var(--fg);
+  transition: border-color .12s, box-shadow .12s;
+}
+.tw-swatch:hover { border-color: var(--border-strong); }
+.tw-swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
+.tw-sw-dots { display: flex; gap: 4px; }
+.tw-sw-dots > span {
+  width: 18px; height: 18px; border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.tw-sw-lbl { color: var(--fg-strong); }
+
+.tw-font {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer; width: 100%;
+  background: var(--surface); border: 1px solid var(--border);
+  text-align: left; margin-bottom: 6px;
+  transition: border-color .12s;
+}
+.tw-font:hover { border-color: var(--border-strong); }
+.tw-font.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
+.tw-font-lbl { font-size: 14px; font-weight: 600; color: var(--fg-strong); }
+.tw-font-sub { font-size: 11px; color: var(--fg-muted); }
