@@ -1,4 +1,4 @@
-/* Fairtip Auth + Tweaks — added styles */
+/* Fairtip Auth styles */
 
 /* ---------- Auth split layout ---------- */
 .auth {
@@ -90,37 +90,3 @@
 
 .sb-user { position: relative; }
 .sb-signout { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
-
-/* ---------- Tweaks helpers ---------- */
-.tw-swatches {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-}
-.tw-swatch {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
-  padding: 10px; border-radius: 8px; cursor: pointer;
-  background: var(--surface); border: 1px solid var(--border);
-  text-align: left;
-  font: var(--fw-medium) 12px/16px var(--font-sans);
-  color: var(--fg);
-  transition: border-color .12s, box-shadow .12s;
-}
-.tw-swatch:hover { border-color: var(--border-strong); }
-.tw-swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
-.tw-sw-dots { display: flex; gap: 4px; }
-.tw-sw-dots > span {
-  width: 18px; height: 18px; border-radius: 4px;
-  border: 1px solid rgba(0,0,0,0.06);
-}
-.tw-sw-lbl { color: var(--fg-strong); }
-
-.tw-font {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  padding: 10px 12px; border-radius: 8px; cursor: pointer; width: 100%;
-  background: var(--surface); border: 1px solid var(--border);
-  text-align: left; margin-bottom: 6px;
-  transition: border-color .12s;
-}
-.tw-font:hover { border-color: var(--border-strong); }
-.tw-font.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
-.tw-font-lbl { font-size: 14px; font-weight: 600; color: var(--fg-strong); }
-.tw-font-sub { font-size: 11px; color: var(--fg-muted); }

@@ -1,5 +1,4 @@
-// Fairtip — Theme overlay. Lets Tweaks swap palette + font live without
-// editing colors_and_type.css. Renders a single <style> tag scoped to :root.
+// Fairtip theme overlay. Renders a single <style> tag scoped to :root.
 
 import React from 'react';
 
@@ -174,7 +173,5 @@ ${lines}
 
   return <style dangerouslySetInnerHTML={{ __html: css }} />;
 };
-
-Object.assign(window, { FtTheme, FT_PALETTES, FT_FONTS });
 
 export {FtTheme};

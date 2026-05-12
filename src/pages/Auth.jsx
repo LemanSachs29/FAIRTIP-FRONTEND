@@ -1,6 +1,5 @@
 import React from 'react';
-import fairtipMark from '../../assets/fairtip-mark.svg'; 
-import logo from '../../assets/fairtip-logo.svg';
+import fairtipMark from '../assets/fairtip-mark.svg';
 
 // Fairtip — Auth shell. Hosts Login + Register on a split layout.
 

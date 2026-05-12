@@ -17,15 +17,8 @@ import { FtDistributions, FtNewDistribution } from './pages/Distributions.jsx';
 import { FtDistributionDetail } from './pages/DistributionDetail.jsx';
 
 // Fairtip — App shell. Wires together every screen as a click-through prototype.
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "palette": "charcoal",
-  "font": "plex",
-  "authView": "app"
-}/*EDITMODE-END*/;
-
 const FtApp = () => {
-  const [t, setTweak] = (typeof useTweaks === 'function') ? useTweaks(TWEAK_DEFAULTS) : [TWEAK_DEFAULTS, () => {}];
-
+  const [authView, setAuthView] = React.useState('app');
   const [view, setView] = React.useState({ name: 'dashboard' });
   const [showNewDist, setShowNewDist] = React.useState(false);
 
@@ -33,20 +26,16 @@ const FtApp = () => {
   const openEmployee = (id) => setView({ name: 'employee', id });
   const openDistribution = (id) => setView({ name: 'distribution', id });
 
-  // Auth-view tweak: 'app' | 'login' | 'register' lets the reviewer see each.
-  const authView = t.authView || 'app';
   if (authView === 'login') {
     return <>
-      <FtTheme palette={t.palette} font={t.font} />
-      <FtLogin onSwitch={(m)=>setTweak('authView', m)} onLogin={()=>setTweak('authView','app')} />
-      <FtTweaks t={t} setTweak={setTweak} />
+      <FtTheme palette="charcoal" font="plex" />
+      <FtLogin onSwitch={setAuthView} onLogin={() => setAuthView('app')} />
     </>;
   }
   if (authView === 'register') {
     return <>
-      <FtTheme palette={t.palette} font={t.font} />
-      <FtRegister onSwitch={(m)=>setTweak('authView', m)} onRegister={()=>setTweak('authView','app')} />
-      <FtTweaks t={t} setTweak={setTweak} />
+      <FtTheme palette="charcoal" font="plex" />
+      <FtRegister onSwitch={setAuthView} onRegister={() => setAuthView('app')} />
     </>;
   }
 
@@ -121,12 +110,12 @@ const FtApp = () => {
 
   return (
     <>
-      <FtTheme palette={t.palette} font={t.font} />
+      <FtTheme palette="charcoal" font="plex" />
       <div className="app">
         <FtSidebar
           active={view.name === 'employee' ? 'employees' : view.name === 'distribution' ? 'distributions' : view.name}
           onNav={nav}
-          onSignOut={() => setTweak('authView', 'login')}
+          onSignOut={() => setAuthView('login')}
         />
         <main className="main">
           <FtTopbar crumbs={crumbs} />
@@ -139,55 +128,7 @@ const FtApp = () => {
           />
         )}
       </div>
-      <FtTweaks t={t} setTweak={setTweak} />
     </>
-  );
-};
-
-const FtTweaks = ({ t, setTweak }) => {
-  if (typeof TweaksPanel !== 'function') return null;
-  const paletteOpts = Object.entries(FT_PALETTES).map(([k, v]) => ({ value: k, swatch: v.swatch, label: v.label }));
-  const fontOpts = Object.entries(FT_FONTS).map(([k, v]) => ({ value: k, label: v.label, sub: v.sub }));
-  return (
-    <TweaksPanel title="Tweaks">
-      <TweakSection label="Palette">
-        <div className="tw-swatches">
-          {paletteOpts.map(p => (
-            <button key={p.value} className={"tw-swatch " + (t.palette === p.value ? "on" : "")}
-              onClick={() => setTweak('palette', p.value)} title={p.label}>
-              <span className="tw-sw-dots">
-                <span style={{background:p.swatch[0]}} />
-                <span style={{background:p.swatch[1]}} />
-                <span style={{background:p.swatch[2]}} />
-              </span>
-              <span className="tw-sw-lbl">{p.label}</span>
-            </button>
-          ))}
-        </div>
-      </TweakSection>
-      <TweakSection label="Typeface">
-        {fontOpts.map(f => (
-          <button key={f.value} className={"tw-font " + (t.font === f.value ? "on" : "")}
-            onClick={() => setTweak('font', f.value)}
-            style={{ fontFamily: (FT_FONTS[f.value] && FT_FONTS[f.value].sans) || 'inherit' }}>
-            <span className="tw-font-lbl">{f.label}</span>
-            <span className="tw-font-sub">{f.sub}</span>
-          </button>
-        ))}
-      </TweakSection>
-      <TweakSection label="View">
-        <TweakRadio
-          label="Screen"
-          value={t.authView}
-          options={[
-            { value: 'app', label: 'App' },
-            { value: 'login', label: 'Log in' },
-            { value: 'register', label: 'Sign up' },
-          ]}
-          onChange={(v) => setTweak('authView', v)}
-        />
-      </TweakSection>
-    </TweaksPanel>
   );
 };
 
