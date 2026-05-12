@@ -39,8 +39,8 @@ const FtButton = ({ variant = 'secondary', size = '', icon, children, onClick, t
   );
 };
 
-const FtIconButton = ({ icon, label, onClick }) => (
-  <button className="btn btn-icon btn-ghost" aria-label={label} onClick={onClick}>
+const FtIconButton = ({ icon, label, onClick, disabled }) => (
+  <button className="btn btn-icon btn-ghost" aria-label={label} onClick={onClick} disabled={disabled}>
     <Icon name={icon} className="ic" />
   </button>
 );
