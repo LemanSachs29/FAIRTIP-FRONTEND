@@ -19,6 +19,7 @@ import {
   FtEmpty,
 } from './components/ui/Primitives.jsx';
 import { login, logout, register } from './services/auth.js';
+import { createDistribution } from './services/distributions.js';
 
 import { FtLogin, FtRegister } from './pages/Auth.jsx';
 import { FtDashboard } from './pages/Dashboard.jsx';
@@ -97,6 +98,17 @@ const AppShell = ({ children }) => {
     }
   }, [route]);
 
+  const handleCreateDistribution = async ({ start_date, end_date, total_tip_amount }) => {
+    try {
+      const created = await createDistribution({ start_date, end_date, total_tip_amount });
+      setShowNewDist(false);
+      navigate(`/distributions/${created.id}`);
+      return created;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return (
     <NewDistributionContext.Provider value={{ openNewDistribution: () => setShowNewDist(true) }}>
       <div className="app">
@@ -111,7 +123,7 @@ const AppShell = ({ children }) => {
         {showNewDist && (
           <FtNewDistribution
             onCancel={() => setShowNewDist(false)}
-            onCreate={() => { setShowNewDist(false); navigate('/distributions/13'); }}
+            onCreate={handleCreateDistribution}
           />
         )}
       </div>
