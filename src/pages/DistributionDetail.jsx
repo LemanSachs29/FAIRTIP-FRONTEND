@@ -129,8 +129,6 @@ const FtDistributionDetail = ({ distributionId, onBack }) => {
           </div>
         </div>
         <div className="actions">
-          <FtButton variant="secondary" icon="download">Export PDF</FtButton>
-          <FtButton variant="secondary" icon="download">Export CSV</FtButton>
         </div>
       </div>
 

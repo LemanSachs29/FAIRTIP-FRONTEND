@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Fairtip — Topbar with breadcrumbs and a global search
+// Fairtip — Topbar with breadcrumbs
 const FtTopbar = ({ crumbs = [], right }) => {
   return (
     <header className="topbar">
@@ -13,11 +13,6 @@ const FtTopbar = ({ crumbs = [], right }) => {
         ))}
       </nav>
       <div className="topbar-spacer"></div>
-      <div className="search">
-        <Icon name="search" className="ic" />
-        <input placeholder="Search employees, distributions…" />
-        <span className="kbd">⌘K</span>
-      </div>
       {right}
     </header>
   );

@@ -14,9 +14,6 @@ const FtSidebar = ({ active, onSignOut }) => {
     { key: 'distributions', label: 'Distributions', icon: 'pie-chart', path: '/distributions' },
     { key: 'absences', label: 'Absences',       icon: 'calendar-x', path: '/absences' },
   ];
-  const settings = [
-    { key: 'settings', label: 'Settings', icon: 'settings', path: '/settings' },
-  ];
   return (
     <aside className="sidebar">
       <div className="sb-brand">
@@ -31,26 +28,13 @@ const FtSidebar = ({ active, onSignOut }) => {
           {i.label}
         </div>
       ))}
-      <div className="sb-section">Account</div>
-      {settings.map(i => (
-        <div key={i.key} className={"sb-item " + (active === i.key ? "active" : "")} onClick={() => navigate(i.path)}>
-          <I name={i.icon} />
-          {i.label}
-        </div>
-      ))}
       <div className="sb-spacer"></div>
-      <div className="sb-user">
-        <div className="avatar">LB</div>
-        <div className="meta">
-          <span className="name">Leman B.</span>
-          <span className="email">manager@trattoria.es</span>
-        </div>
-        {onSignOut && (
-          <button className="btn btn-icon btn-ghost sb-signout" aria-label="Sign out" onClick={onSignOut}>
-            <Icon name="log-out" className="ic" />
-          </button>
-        )}
-      </div>
+      {onSignOut && (
+        <button className="btn btn-secondary" onClick={onSignOut} style={{margin:'12px', gap: 8, width: 'calc(100% - 24px)'}}>
+          <Icon name="log-out" className="ic" />
+          <span>Sign out</span>
+        </button>
+      )}
     </aside>
   );
 };

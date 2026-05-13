@@ -65,7 +65,6 @@ const FtEmployees = ({ onOpenEmployee }) => {
           <div className="sub">Staff included in tip distributions.</div>
         </div>
         <div className="actions">
-          <FtButton variant="secondary" icon="download">Export CSV</FtButton>
           <FtButton variant="primary" icon="user-plus" onClick={() => setOpen(true)}>Add employee</FtButton>
         </div>
       </div>
@@ -92,20 +91,27 @@ const FtEmployees = ({ onOpenEmployee }) => {
               <th style={{width: 40}}></th>
             </tr></thead>
             <tbody>
-              {list.map(e => (
-                <tr key={e.id} onClick={() => onOpenEmployee && onOpenEmployee(e.id)}>
-                  <td>
-                    <div className="name">{e.name} {e.surname}</div>
-                    <div className="sub">#{e.id.toString().padStart(4,'0')}</div>
-                  </td>
-                  <td className="r">{e.average_daily_hours}h</td>
-                  <td><span className="muted">-</span></td>
-                  <td className="r"><span className="muted">0</span></td>
-                  <td onClick={(ev) => ev.stopPropagation()}>
-                    <FtIconButton icon="more-horizontal" label="Row actions" />
-                  </td>
-                </tr>
-              ))}
+              {list.map(e => {
+                const daysOff = (e.day_offs && Array.isArray(e.day_offs) && e.day_offs.length > 0)
+                  ? e.day_offs.join(', ')
+                  : '-';
+                const absenceCount = e.absence_count_30d ?? 0;
+
+                return (
+                  <tr key={e.id} onClick={() => onOpenEmployee && onOpenEmployee(e.id)}>
+                    <td>
+                      <div className="name">{e.name} {e.surname}</div>
+                      <div className="sub">#{e.id.toString().padStart(4,'0')}</div>
+                    </td>
+                    <td className="r">{e.average_daily_hours}h</td>
+                    <td><span className={daysOff === '-' ? 'muted' : ''}>{daysOff}</span></td>
+                    <td className="r"><span className={absenceCount === 0 ? 'muted' : ''}>{absenceCount}</span></td>
+                    <td onClick={(ev) => ev.stopPropagation()}>
+                      <FtIconButton icon="more-horizontal" label="Row actions" />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -124,11 +130,11 @@ const FtEmployees = ({ onOpenEmployee }) => {
           <div className="grid-2">
             <div className="field">
               <label className="l">Name</label>
-              <input className="inp" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Maria" />
+              <input className="inp" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="First name" />
             </div>
             <div className="field">
               <label className="l">Surname</label>
-              <input className="inp" value={form.surname} onChange={e => setForm({...form, surname: e.target.value})} placeholder="Lopez" />
+              <input className="inp" value={form.surname} onChange={e => setForm({...form, surname: e.target.value})} placeholder="Last name" />
             </div>
           </div>
           <div className="field">

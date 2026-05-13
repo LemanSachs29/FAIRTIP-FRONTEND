@@ -102,7 +102,6 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
           <div className="sub">Overview of tips, hours, and recent distributions.</div>
         </div>
         <div className="actions">
-          <FtButton variant="secondary" icon="download">Export</FtButton>
           <FtButton variant="primary" icon="plus" onClick={onNewDistribution}>New distribution</FtButton>
         </div>
       </div>

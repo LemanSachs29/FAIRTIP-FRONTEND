@@ -14,9 +14,9 @@ const FtAuthShell = ({ children, mode = 'login', onSwitch }) => (
         <h2 className="auth-headline">Distribute tips fairly,<br/>in under a minute.</h2>
         <p className="auth-blurb">A clean ledger for restaurant managers. Track hours, split pools, and keep a paper trail your team trusts.</p>
         <ul className="auth-points">
-          <li><Icon name="clock" className="ic" /> Hours-based, fixed, or custom rules</li>
-          <li><Icon name="receipt" className="ic" /> Per-employee distribution history</li>
-          <li><Icon name="download" className="ic" /> Export to CSV or PDF anytime</li>
+          <li><Icon name="clock" className="ic" /> Track employee hours</li>
+          <li><Icon name="receipt" className="ic" /> Fair tip distribution</li>
+          <li><Icon name="users" className="ic" /> Manage your team</li>
         </ul>
       </div>
       <div className="auth-foot muted">© Fairtip 2025 · Made for hospitality</div>
@@ -35,7 +35,7 @@ const FtAuthShell = ({ children, mode = 'login', onSwitch }) => (
 );
 
 const FtLogin = ({ onSwitch, onLogin }) => {
-  const [email, setEmail] = React.useState('manager@trattoria.example');
+  const [email, setEmail] = React.useState('');
   const [pass, setPass]   = React.useState('');
   const [error, setError] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -61,30 +61,19 @@ const FtLogin = ({ onSwitch, onLogin }) => {
         {error && <div className="auth-error" role="alert">{error}</div>}
         <div className="field">
           <label className="l">Work email</label>
-          <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" required />
+          <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" required />
         </div>
         <div className="field">
-          <div className="row" style={{justifyContent:'space-between'}}>
-            <label className="l">Password</label>
-            <a href="#" className="auth-link-sm" onClick={e=>e.preventDefault()}>Forgot?</a>
-          </div>
+          <label className="l">Password</label>
           <input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} autoComplete="current-password" required />
         </div>
-        <label className="auth-check">
-          <input type="checkbox" defaultChecked /> Keep me signed in on this device
-        </label>
         <FtButton variant="primary" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Logging in...' : 'Log in'}</FtButton>
       </form>
-      <div className="auth-divider"><span>or</span></div>
-      <button className="btn btn-secondary auth-sso" type="button">
-        <Icon name="key-round" className="ic" /> Continue with SSO
-      </button>
     </FtAuthShell>
   );
 };
 
 const FtRegister = ({ onSwitch, onRegister }) => {
-  const [name, setName]   = React.useState('');
   const [email, setEmail] = React.useState('');
   const [pass, setPass]   = React.useState('');
   const [error, setError] = React.useState('');
@@ -107,22 +96,17 @@ const FtRegister = ({ onSwitch, onRegister }) => {
   return (
     <FtAuthShell mode="register" onSwitch={onSwitch}>
       <h1 className="auth-title">Create your account</h1>
-      <p className="auth-sub">Free for 14 days. No card required.</p>
+      <p className="auth-sub">Sign up for Fairtip to get started.</p>
       {error && <div className="auth-error" role="alert">{error}</div>}
 
       <form className="auth-form" onSubmit={handleSubmit}>
         <div className="field">
-          <label className="l">Your name</label>
-          <input className="inp" value={name} onChange={e=>setName(e.target.value)} placeholder="Maria Lopez" autoFocus />
-        </div>
-        <div className="field">
           <label className="l">Work email</label>
-          <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@restaurant.com" required />
+          <input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@restaurant.com" autoFocus required />
         </div>
         <div className="field">
           <label className="l">Password</label>
-          <input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="At least 10 characters" required />
-          <div className="auth-hint">Use 10+ characters. We'll send a verification link.</div>
+          <input className="inp" type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="At least 8 characters" required />
         </div>
         <FtButton variant="primary" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating...' : 'Create account'}</FtButton>
       </form>

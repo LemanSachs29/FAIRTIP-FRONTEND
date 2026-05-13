@@ -160,7 +160,6 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
         </div>
         <div className="actions">
           <FtButton variant="secondary" icon="pencil" onClick={() => setEditing(true)}>Edit</FtButton>
-          <FtButton variant="danger" icon="trash-2">Delete</FtButton>
         </div>
       </div>
 

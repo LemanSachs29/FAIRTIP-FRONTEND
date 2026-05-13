@@ -45,7 +45,6 @@ const FtApp = () => (
       <Route path="/distributions" element={<ProtectedRoute><AppShell><DistributionsRoute /></AppShell></ProtectedRoute>} />
       <Route path="/distributions/:id" element={<ProtectedRoute><AppShell><DistributionDetailRoute /></AppShell></ProtectedRoute>} />
       <Route path="/absences" element={<ProtectedRoute><AppShell><AbsencesRoute /></AppShell></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><AppShell><SettingsRoute /></AppShell></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   </BrowserRouter>
@@ -89,11 +88,10 @@ const AppShell = ({ children }) => {
     switch (route.name) {
       case 'dashboard':     return ['Dashboard'];
       case 'employees':     return ['Employees'];
-      case 'employee':      return ['Employees', 'Maria Lopez'];
+      case 'employee':      return ['Employees', 'Employee'];
       case 'distributions': return ['Distributions'];
       case 'distribution':  return ['Distributions', '#' + route.id.toString().padStart(4, '0')];
       case 'absences':      return ['Absences'];
-      case 'settings':      return ['Settings'];
       default: return ['Dashboard'];
     }
   }, [route]);
@@ -189,41 +187,12 @@ const AbsencesRoute = () => {
   );
 };
 
-const SettingsRoute = () => (
-  <div>
-    <div className="page-h"><div className="titles"><h1>Settings</h1><div className="sub">Workspace and currency.</div></div></div>
-    <div className="grid-2">
-      <FtCard title="Workspace">
-        <div className="field" style={{marginBottom: 16}}>
-          <label className="l">Display name</label>
-          <input className="inp" defaultValue="Trattoria San Marco" />
-        </div>
-        <div className="field">
-          <label className="l">Default currency</label>
-          <select className="inp"><option>EUR — €</option><option>USD — $</option><option>GBP — £</option></select>
-        </div>
-      </FtCard>
-      <FtCard title="Rounding">
-        <div className="field" style={{marginBottom: 16}}>
-          <label className="l">Display precision</label>
-          <select className="inp"><option>2 decimals</option><option>4 decimals</option></select>
-        </div>
-        <div className="field">
-          <label className="l">Apply remainder to</label>
-          <select className="inp"><option>Largest share</option><option>Random employee</option><option>Carry over</option></select>
-        </div>
-      </FtCard>
-    </div>
-  </div>
-);
-
 const getRouteState = (pathname) => {
   if (pathname.startsWith('/employees/')) return { name: 'employee', active: 'employees', id: pathname.split('/')[2] || '' };
   if (pathname.startsWith('/distributions/')) return { name: 'distribution', active: 'distributions', id: pathname.split('/')[2] || '' };
   if (pathname.startsWith('/employees')) return { name: 'employees', active: 'employees' };
   if (pathname.startsWith('/distributions')) return { name: 'distributions', active: 'distributions' };
   if (pathname.startsWith('/absences')) return { name: 'absences', active: 'absences' };
-  if (pathname.startsWith('/settings')) return { name: 'settings', active: 'settings' };
 
   return { name: 'dashboard', active: 'dashboard' };
 };

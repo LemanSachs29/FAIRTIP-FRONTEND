@@ -38,7 +38,6 @@ const FtDistributions = ({ onOpenDistribution, onNew }) => {
           <div className="sub">All saved tip distributions.</div>
         </div>
         <div className="actions">
-          <FtButton variant="secondary" icon="download">Export</FtButton>
           <FtButton variant="primary" icon="plus" onClick={onNew}>New distribution</FtButton>
         </div>
       </div>
