@@ -2,11 +2,64 @@ import React from 'react';
 
 // Fairtip — Dashboard screen
 const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
-  const recent = [
-    { id: 12, period: 'May 1 – May 31, 2026', total: '€2,310.00', perHour: '€10.9764', employees: 8, status: 'Distributed' },
-    { id: 11, period: 'Apr 1 – Apr 30, 2026', total: '€1,985.50', perHour: '€9.4138',  employees: 8, status: 'Distributed' },
-    { id: 10, period: 'Mar 1 – Mar 31, 2026', total: '€2,142.20', perHour: '€10.0567', employees: 7, status: 'Distributed' },
+  const mockDistributions = [
+    {
+      id: 1,
+      start_date: "2026-10-01",
+      end_date: "2026-10-15",
+      total_tip_amount: "400.00",
+      total_computed_hours: "736.00",
+      tip_per_hour: "0.5435",
+      created_at: "2026-10-15T12:00:00Z",
+    },
   ];
+
+  const mockEmployees = [
+    { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }
+  ];
+
+  const formatCurrency = (value) => `€${value}`;
+
+  const formatDateRange = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${startStr} – ${endStr}`;
+  };
+
+  const getLatestDistribution = (distributions) => distributions[0];
+
+  const distributions = mockDistributions;
+  const employees = mockEmployees;
+  const latestDistribution = getLatestDistribution(distributions);
+
+  const card1 = latestDistribution ? {
+    label: "Latest distribution",
+    value: formatCurrency(latestDistribution.total_tip_amount),
+    sub: formatDateRange(latestDistribution.start_date, latestDistribution.end_date)
+  } : {
+    label: "Latest distribution",
+    value: "No distributions yet",
+    sub: "Create your first distribution to see results"
+  };
+
+  const card2 = latestDistribution ? {
+    label: "Tip per hour",
+    value: formatCurrency(latestDistribution.tip_per_hour),
+    sub: `Across ${latestDistribution.total_computed_hours} computed hours`
+  } : {
+    label: "Tip per hour",
+    value: "—",
+    sub: "Across 0.00 computed hours"
+  };
+
+  const card3 = {
+    label: "Employees",
+    value: employees.length.toString(),
+    sub: "Registered employees"
+  };
+
   return (
     <div>
       <div className="page-h">
@@ -21,36 +74,40 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
       </div>
 
       <div className="grid-3" style={{marginBottom: 20}}>
-        <FtStat label="Tips, this period" value="€2,500.00" sub="Jun 1 – Jun 30, 2026 (draft)" />
-        <FtStat label="Tip per hour"      value="€11.7647"  sub="Across 212.50 computed hours" />
-        <FtStat label="Employees"         value="8"         sub="3 with absences this period" />
+        <FtStat label={card1.label} value={card1.value} sub={card1.sub} />
+        <FtStat label={card2.label} value={card2.value} sub={card2.sub} />
+        <FtStat label={card3.label} value={card3.value} sub={card3.sub} />
       </div>
 
       <FtCard
         title="Recent distributions"
-        actions={<FtButton variant="ghost" size="sm" icon="arrow-right">View all</FtButton>}
+        actions={<FtButton variant="ghost" size="sm" icon="arrow-right" onClick={() => window.location.href = '/distributions'}>View all</FtButton>}
         flush
       >
-        <table className="tbl">
-          <thead><tr>
-            <th>Period</th>
-            <th>Employees</th>
-            <th className="r">Total tips</th>
-            <th className="r">€ / hour</th>
-            <th>Status</th>
-          </tr></thead>
-          <tbody>
-            {recent.map(r => (
-              <tr key={r.id} onClick={() => onOpenDistribution && onOpenDistribution(r.id)}>
-                <td><div className="name">{r.period}</div><div className="sub">#{r.id.toString().padStart(4,'0')}</div></td>
-                <td>{r.employees}</td>
-                <td className="r"><strong>{r.total}</strong></td>
-                <td className="r">{r.perHour}</td>
-                <td><FtBadge tone="success" dot="#2F7D5B">{r.status}</FtBadge></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {distributions.length > 0 ? (
+          <table className="tbl">
+            <thead><tr>
+              <th>Period</th>
+              <th>Employees</th>
+              <th className="r">Total tips</th>
+              <th className="r">€ / hour</th>
+              <th>Status</th>
+            </tr></thead>
+            <tbody>
+              {distributions.slice(0,3).map(r => (
+                <tr key={r.id} onClick={() => onOpenDistribution && onOpenDistribution(r.id)}>
+                  <td><div className="name">{formatDateRange(r.start_date, r.end_date)}</div><div className="sub">#{r.id.toString().padStart(4,'0')}</div></td>
+                  <td>{employees.length}</td>
+                  <td className="r"><strong>{formatCurrency(r.total_tip_amount)}</strong></td>
+                  <td className="r">{formatCurrency(r.tip_per_hour)}</td>
+                  <td><FtBadge tone="success" dot="#2F7D5B">Distributed</FtBadge></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div>No distributions created yet. Create your first distribution to see history.</div>
+        )}
       </FtCard>
     </div>
   );
