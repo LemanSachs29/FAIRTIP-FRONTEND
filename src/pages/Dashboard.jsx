@@ -1,22 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getEmployees } from '../services/employees.js';
+import { getDistributions } from '../services/distributions.js';
 
 // Fairtip — Dashboard screen
 const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
-  const mockDistributions = [
-    {
-      id: 1,
-      start_date: "2026-10-01",
-      end_date: "2026-10-15",
-      total_tip_amount: "400.00",
-      total_computed_hours: "736.00",
-      tip_per_hour: "0.5435",
-      created_at: "2026-10-15T12:00:00Z",
-    },
-  ];
+  const [distributions, setDistributions] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const mockEmployees = [
-    { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [distributionsData, employeesData] = await Promise.all([
+          getDistributions(),
+          getEmployees()
+        ]);
+        setDistributions(distributionsData);
+        setEmployees(employeesData);
+      } catch (err) {
+        setError(err.message || 'Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const formatCurrency = (value) => `€${value}`;
 
@@ -30,11 +42,17 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
 
   const getLatestDistribution = (distributions) => distributions[0];
 
-  const distributions = mockDistributions;
-  const employees = mockEmployees;
   const latestDistribution = getLatestDistribution(distributions);
 
-  const card1 = latestDistribution ? {
+  const card1 = loading ? {
+    label: "Latest distribution",
+    value: "Loading...",
+    sub: ""
+  } : error ? {
+    label: "Latest distribution",
+    value: "Error loading data",
+    sub: ""
+  } : latestDistribution ? {
     label: "Latest distribution",
     value: formatCurrency(latestDistribution.total_tip_amount),
     sub: formatDateRange(latestDistribution.start_date, latestDistribution.end_date)
@@ -44,7 +62,15 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
     sub: "Create your first distribution to see results"
   };
 
-  const card2 = latestDistribution ? {
+  const card2 = loading ? {
+    label: "Tip per hour",
+    value: "Loading...",
+    sub: ""
+  } : error ? {
+    label: "Tip per hour",
+    value: "Error loading data",
+    sub: ""
+  } : latestDistribution ? {
     label: "Tip per hour",
     value: formatCurrency(latestDistribution.tip_per_hour),
     sub: `Across ${latestDistribution.total_computed_hours} computed hours`
@@ -54,7 +80,15 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
     sub: "Across 0.00 computed hours"
   };
 
-  const card3 = {
+  const card3 = loading ? {
+    label: "Employees",
+    value: "Loading...",
+    sub: ""
+  } : error ? {
+    label: "Employees",
+    value: "Error loading data",
+    sub: ""
+  } : {
     label: "Employees",
     value: employees.length.toString(),
     sub: "Registered employees"
@@ -84,7 +118,11 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
         actions={<FtButton variant="ghost" size="sm" icon="arrow-right" onClick={() => window.location.href = '/distributions'}>View all</FtButton>}
         flush
       >
-        {distributions.length > 0 ? (
+        {loading ? (
+          <div>Loading distributions...</div>
+        ) : error ? (
+          <div>Failed to load distributions: {error}</div>
+        ) : distributions.length > 0 ? (
           <table className="tbl">
             <thead><tr>
               <th>Period</th>
