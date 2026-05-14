@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
-import { getEmployee, updateEmployee } from '../services/employees.js';
+import { getEmployee, updateEmployee, getEmployeeDistributionEntries } from '../services/employees.js';
 import {
   addEmployeeDayOff,
   deleteEmployeeDayOff,
@@ -29,6 +29,7 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
   const [editing, setEditing] = React.useState(false);
   const [daysOff, setDaysOff] = React.useState([]);
   const [absences, setAbsences] = React.useState([]);
+  const [distributionEntries, setDistributionEntries] = React.useState([]);
   const [absDate, setAbsDate] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState('');
@@ -43,14 +44,16 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
     setLoadError('');
 
     try {
-      const [employee, dayOffData, absenceData] = await Promise.all([
+      const [employee, dayOffData, absenceData, distributionData] = await Promise.all([
         getEmployee(activeEmployeeId),
         getEmployeeDayOffs(activeEmployeeId),
         getEmployeeAbsences(activeEmployeeId),
+        getEmployeeDistributionEntries(activeEmployeeId),
       ]);
       setProfile(employee);
       setDaysOff(normalizeList(dayOffData, 'day_offs'));
       setAbsences(normalizeList(absenceData, 'absences'));
+      setDistributionEntries(normalizeList(distributionData, 'distribution_entries'));
     } catch (err) {
       setLoadError(err?.message || 'Unable to load employee details.');
     } finally {
@@ -252,19 +255,28 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
 
       <div style={{marginTop: 20}}>
         <FtCard title="Distribution history" flush>
-          <table className="tbl">
-            <thead><tr>
-              <th>Period</th>
-              <th className="r">Worked days</th>
-              <th className="r">Computed h</th>
-              <th className="r">Share</th>
-            </tr></thead>
-            <tbody>
-              <tr><td>May 1 - May 31, 2026</td><td className="r">24</td><td className="r">204.00</td><td className="r"><strong>EUR 988.40</strong></td></tr>
-              <tr><td>Apr 1 - Apr 30, 2026</td><td className="r">22</td><td className="r">187.00</td><td className="r"><strong>EUR 878.42</strong></td></tr>
-              <tr><td>Mar 1 - Mar 31, 2026</td><td className="r">25</td><td className="r">212.50</td><td className="r"><strong>EUR 1,050.62</strong></td></tr>
-            </tbody>
-          </table>
+          {distributionEntries.length === 0 ? (
+            <FtEmpty icon="pie-chart" title="No distributions yet for this employee." body="Distribution entries will appear here once they are created." />
+          ) : (
+            <table className="tbl">
+              <thead><tr>
+                <th>Period</th>
+                <th className="r">Worked days</th>
+                <th className="r">Computed h</th>
+                <th className="r">Share</th>
+              </tr></thead>
+              <tbody>
+                {distributionEntries.map(entry => (
+                  <tr key={entry.id}>
+                    <td>{entry.period}</td>
+                    <td className="r">{entry.worked_days}</td>
+                    <td className="r">{entry.computed_hours}</td>
+                    <td className="r"><strong>EUR {entry.share}</strong></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </FtCard>
       </div>
     </div>
