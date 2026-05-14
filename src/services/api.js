@@ -32,6 +32,12 @@ async function request(path, options = {}) {
 
   const data = await res.json().catch(() => null);
 
+  // auto logout on expired/invalid token
+  if (res.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/login';
+  }
+
   if (!res.ok) {
     throw {
       status: res.status,
