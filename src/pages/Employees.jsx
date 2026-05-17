@@ -9,6 +9,7 @@ const FtEmployees = ({ onOpenEmployee }) => {
   const [form, setForm] = React.useState({ name: '', surname: '', avg: '8.00' });
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState('');
+  const [createError, setCreateError] = React.useState('');
   const [statusError, setStatusError] = React.useState('');
   const [showInactive, setShowInactive] = React.useState(false);
   const [isCreating, setIsCreating] = React.useState(false);
