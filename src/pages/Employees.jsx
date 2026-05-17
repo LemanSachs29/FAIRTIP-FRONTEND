@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { createEmployee, getEmployees } from '../services/employees.js';
+import { createEmployee, getEmployees, deactivateEmployee, reactivateEmployee } from '../services/employees.js';
 
 // Fairtip - Employees list + create modal
 const FtEmployees = ({ onOpenEmployee }) => {
@@ -9,22 +9,55 @@ const FtEmployees = ({ onOpenEmployee }) => {
   const [form, setForm] = React.useState({ name: '', surname: '', avg: '8.00' });
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState('');
-  const [createError, setCreateError] = React.useState('');
+  const [statusError, setStatusError] = React.useState('');
+  const [showInactive, setShowInactive] = React.useState(false);
   const [isCreating, setIsCreating] = React.useState(false);
+  const [statusMutatingId, setStatusMutatingId] = React.useState(null);
 
-  const loadEmployees = React.useCallback(async () => {
+  const loadEmployees = React.useCallback(async (includeInactive = showInactive) => {
     setIsLoading(true);
     setLoadError('');
+    setStatusError('');
 
     try {
-      const data = await getEmployees();
+      const data = await getEmployees({ includeInactive });
       setList(Array.isArray(data) ? data : data?.employees || []);
     } catch (err) {
       setLoadError(err?.message || 'Unable to load employees.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [showInactive]);
+
+  const toggleShowInactive = async (event) => {
+    const nextValue = event.target.checked;
+    setShowInactive(nextValue);
+    await loadEmployees(nextValue);
+  };
+
+  const changeEmployeeStatus = async (employee) => {
+    const confirmMessage = employee.is_active
+      ? 'This employee will no longer be included in future distributions, but their historical data will be preserved.'
+      : 'This employee will be included in future distributions again.';
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setStatusError('');
+    setStatusMutatingId(employee.id);
+
+    try {
+      if (employee.is_active) {
+        await deactivateEmployee(employee.id);
+      } else {
+        await reactivateEmployee(employee.id);
+      }
+      await loadEmployees();
+    } catch (err) {
+      setStatusError(err?.message || 'Unable to update employee status.');
+    } finally {
+      setStatusMutatingId(null);
+    }
+  };
 
   React.useEffect(() => {
     loadEmployees();
@@ -64,7 +97,11 @@ const FtEmployees = ({ onOpenEmployee }) => {
           <h1>Employees</h1>
           <div className="sub">Staff included in tip distributions.</div>
         </div>
-        <div className="actions">
+        <div className="actions" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fg-muted)' }}>
+            <input type="checkbox" checked={showInactive} onChange={toggleShowInactive} />
+            Show inactive employees
+          </label>
           <FtButton variant="primary" icon="user-plus" onClick={() => setOpen(true)}>Add employee</FtButton>
         </div>
       </div>
@@ -82,38 +119,62 @@ const FtEmployees = ({ onOpenEmployee }) => {
         ) : list.length === 0 ? (
           <FtEmpty icon="users" title="No employees yet." body="Add your first employee to start building distributions." />
         ) : (
-          <table className="tbl">
-            <thead><tr>
-              <th>Employee</th>
-              <th className="r">Avg. daily hours</th>
-              <th>Regular days off</th>
-              <th className="r">Absences (30d)</th>
-              <th style={{width: 40}}></th>
-            </tr></thead>
-            <tbody>
-              {list.map(e => {
-                const daysOff = (e.day_offs && Array.isArray(e.day_offs) && e.day_offs.length > 0)
-                  ? e.day_offs.join(', ')
-                  : '-';
-                const absenceCount = e.absence_count_30d ?? 0;
+          <>
+            {statusError && <div className="auth-error" role="alert" style={{ marginBottom: 16 }}>{statusError}</div>}
+            <table className="tbl">
+              <thead><tr>
+                <th>Employee</th>
+                <th className="r">Avg. daily hours</th>
+                <th>Regular days off</th>
+                <th className="r">Absences (30d)</th>
+                <th style={{ width: 180 }}>Action</th>
+              </tr></thead>
+              <tbody>
+                {list.map(e => {
+                  const daysOff = (e.day_offs && Array.isArray(e.day_offs) && e.day_offs.length > 0)
+                    ? e.day_offs.join(', ')
+                    : '-';
+                  const absenceCount = e.absence_count_30d ?? 0;
 
-                return (
-                  <tr key={e.id} onClick={() => onOpenEmployee && onOpenEmployee(e.id)}>
-                    <td>
-                      <div className="name">{e.name} {e.surname}</div>
-                      <div className="sub">#{e.id.toString().padStart(4,'0')}</div>
-                    </td>
-                    <td className="r">{e.average_daily_hours}h</td>
-                    <td><span className={daysOff === '-' ? 'muted' : ''}>{daysOff}</span></td>
-                    <td className="r"><span className={absenceCount === 0 ? 'muted' : ''}>{absenceCount}</span></td>
-                    <td onClick={(ev) => ev.stopPropagation()}>
-                      <FtIconButton icon="more-horizontal" label="Row actions" />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                  return (
+                    <tr key={e.id} onClick={() => onOpenEmployee && onOpenEmployee(e.id)}>
+                      <td>
+                        <div className="name">{e.name} {e.surname}</div>
+                        <div className="sub" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span>#{e.id.toString().padStart(4,'0')}</span>
+                          {!e.is_active && <FtBadge tone="warning">Inactive</FtBadge>}
+                        </div>
+                      </td>
+                      <td className="r">{e.average_daily_hours}h</td>
+                      <td><span className={daysOff === '-' ? 'muted' : ''}>{daysOff}</span></td>
+                      <td className="r"><span className={absenceCount === 0 ? 'muted' : ''}>{absenceCount}</span></td>
+                      <td className="r" onClick={(ev) => ev.stopPropagation()}>
+                        {e.is_active ? (
+                          <FtButton
+                            size="sm"
+                            variant="danger"
+                            onClick={() => changeEmployeeStatus(e)}
+                            disabled={statusMutatingId === e.id}
+                          >
+                            {statusMutatingId === e.id ? 'Deactivating...' : 'Deactivate'}
+                          </FtButton>
+                        ) : (
+                          <FtButton
+                            size="sm"
+                            variant="primary"
+                            onClick={() => changeEmployeeStatus(e)}
+                            disabled={statusMutatingId === e.id}
+                          >
+                            {statusMutatingId === e.id ? 'Reactivating...' : 'Reactivate'}
+                          </FtButton>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
         )}
       </FtCard>
 

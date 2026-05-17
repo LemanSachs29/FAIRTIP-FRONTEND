@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
-import { getEmployee, updateEmployee, getEmployeeDistributionEntries } from '../services/employees.js';
+import { getEmployee, updateEmployee, getEmployeeDistributionEntries, deactivateEmployee, reactivateEmployee } from '../services/employees.js';
 import {
   addEmployeeDayOff,
   deleteEmployeeDayOff,
@@ -22,6 +22,30 @@ const normalizeList = (data, key) => {
   return [];
 };
 
+const formatDateRange = (startStr, endStr) => {
+  if (!startStr || !endStr) return '-';
+
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return 'Invalid date range';
+  }
+
+  const startFormatted = start.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+
+  const endFormatted = end.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return `${startFormatted} - ${endFormatted}`;
+};
+
 const FtEmployeeDetail = ({ employeeId, onBack }) => {
   const params = useParams();
   const activeEmployeeId = employeeId || params.id;
@@ -35,9 +59,11 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
   const [loadError, setLoadError] = React.useState('');
   const [dayOffError, setDayOffError] = React.useState('');
   const [absenceError, setAbsenceError] = React.useState('');
+  const [statusError, setStatusError] = React.useState('');
   const [mutatingDay, setMutatingDay] = React.useState('');
   const [isAddingAbsence, setIsAddingAbsence] = React.useState(false);
   const [deletingAbsenceId, setDeletingAbsenceId] = React.useState(null);
+  const [statusMutating, setStatusMutating] = React.useState(false);
 
   const loadDetail = React.useCallback(async () => {
     setIsLoading(true);
@@ -70,6 +96,31 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
     const data = await getEmployeeAbsences(activeEmployeeId);
     setAbsences(normalizeList(data, 'absences'));
   }, [activeEmployeeId]);
+
+  const toggleActiveStatus = async () => {
+    const isActive = profile?.is_active;
+    const confirmMessage = isActive
+      ? 'This employee will no longer be included in future distributions, but their historical data will be preserved.'
+      : 'This employee will be included in future distributions again.';
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setStatusError('');
+    setStatusMutating(true);
+
+    try {
+      if (isActive) {
+        await deactivateEmployee(activeEmployeeId);
+      } else {
+        await reactivateEmployee(activeEmployeeId);
+      }
+      await loadDetail();
+    } catch (err) {
+      setStatusError(err?.message || 'Unable to update employee status.');
+    } finally {
+      setStatusMutating(false);
+    }
+  };
 
   React.useEffect(() => {
     loadDetail();
@@ -158,13 +209,28 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
           </button>
           <div>
             <h1>{profile.name} {profile.surname}</h1>
-            <div className="sub">{averageDailyHours}h average per day - employee #{activeEmployeeId.toString().padStart(4,'0')}</div>
+            <div className="sub" style={{display:'flex', flexWrap:'wrap', alignItems:'center', gap: 10}}>
+              <span>{averageDailyHours}h average per day - employee #{activeEmployeeId.toString().padStart(4,'0')}</span>
+              <FtBadge tone={profile.is_active ? 'success' : 'warning'}>{profile.is_active ? 'Active' : 'Inactive'}</FtBadge>
+            </div>
           </div>
         </div>
-        <div className="actions">
+        <div className="actions" style={{display:'flex', gap: 10, flexWrap:'wrap', alignItems:'center'}}>
+          <FtButton
+            variant={profile.is_active ? 'danger' : 'primary'}
+            onClick={toggleActiveStatus}
+            disabled={statusMutating}
+          >
+            {statusMutating
+              ? profile.is_active ? 'Deactivating...' : 'Reactivating...'
+              : profile.is_active ? 'Deactivate employee' : 'Reactivate employee'
+            }
+          </FtButton>
           <FtButton variant="secondary" icon="pencil" onClick={() => setEditing(true)}>Edit</FtButton>
         </div>
       </div>
+
+      {statusError && <div className="auth-error" role="alert" style={{margin: '16px 0'}}>{statusError}</div>}
 
       {editing && (
         <FtEditEmployee
@@ -268,7 +334,7 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
               <tbody>
                 {distributionEntries.map(entry => (
                   <tr key={entry.id}>
-                    <td>{entry.period}</td>
+                    <td>{formatDateRange(entry.start_date, entry.end_date)}</td>
                     <td className="r">{entry.worked_days}</td>
                     <td className="r">{entry.computed_hours}</td>
                     <td className="r"><strong>EUR {entry.share}</strong></td>
