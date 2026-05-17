@@ -337,7 +337,7 @@ const FtEmployeeDetail = ({ employeeId, onBack }) => {
                     <td>{formatDateRange(entry.start_date, entry.end_date)}</td>
                     <td className="r">{entry.worked_days}</td>
                     <td className="r">{entry.computed_hours}</td>
-                    <td className="r"><strong>EUR {entry.share}</strong></td>
+                    <td className="r"><strong>EUR {entry.rounded_amount}</strong></td>
                   </tr>
                 ))}
               </tbody>
