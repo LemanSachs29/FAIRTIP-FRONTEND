@@ -27,6 +27,7 @@ import { FtEmployees } from './pages/Employees.jsx';
 import { FtEmployeeDetail } from './pages/EmployeeDetail.jsx';
 import { FtDistributions, FtNewDistribution } from './pages/Distributions.jsx';
 import { FtDistributionDetail } from './pages/DistributionDetail.jsx';
+import { FtSettings } from './pages/Settings.jsx';
 
 const NewDistributionContext = React.createContext({ openNewDistribution: () => {} });
 
@@ -44,6 +45,7 @@ const FtApp = () => (
       <Route path="/employees/:id" element={<ProtectedRoute><AppShell><EmployeeDetailRoute /></AppShell></ProtectedRoute>} />
       <Route path="/distributions" element={<ProtectedRoute><AppShell><DistributionsRoute /></AppShell></ProtectedRoute>} />
       <Route path="/distributions/:id" element={<ProtectedRoute><AppShell><DistributionDetailRoute /></AppShell></ProtectedRoute>} />
+      <Route path="/dashboard/settings" element={<ProtectedRoute><AppShell><SettingsRoute /></AppShell></ProtectedRoute>} />
       <Route path="/absences" element={<ProtectedRoute><AppShell><AbsencesRoute /></AppShell></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
@@ -91,6 +93,7 @@ const AppShell = ({ children }) => {
       case 'employee':      return ['Employees', 'Employee'];
       case 'distributions': return ['Distributions'];
       case 'distribution':  return ['Distributions', '#' + route.id.toString().padStart(4, '0')];
+      case 'settings':      return ['Settings'];
       case 'absences':      return ['Absences'];
       default: return ['Dashboard'];
     }
@@ -173,6 +176,8 @@ const DistributionDetailRoute = () => {
   return <FtDistributionDetail distributionId={id} onBack={() => navigate('/distributions')} />;
 };
 
+const SettingsRoute = () => <FtSettings />;
+
 const AbsencesRoute = () => {
   const navigate = useNavigate();
 
@@ -192,6 +197,7 @@ const getRouteState = (pathname) => {
   if (pathname.startsWith('/distributions/')) return { name: 'distribution', active: 'distributions', id: pathname.split('/')[2] || '' };
   if (pathname.startsWith('/employees')) return { name: 'employees', active: 'employees' };
   if (pathname.startsWith('/distributions')) return { name: 'distributions', active: 'distributions' };
+  if (pathname.startsWith('/dashboard/settings')) return { name: 'settings', active: 'settings' };
   if (pathname.startsWith('/absences')) return { name: 'absences', active: 'absences' };
 
   return { name: 'dashboard', active: 'dashboard' };

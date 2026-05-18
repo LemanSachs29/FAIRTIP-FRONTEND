@@ -49,6 +49,16 @@ async function request(path, options = {}) {
   return data;
 }
 
+function changePassword(currentPassword, newPassword) {
+  return request('/auth/password', {
+    method: 'PUT',
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
+  });
+}
+
 export const api = {
   get: (path) => request(path),
   post: (path, body) =>
@@ -70,4 +80,5 @@ export const api = {
     request(path, {
       method: 'DELETE',
     }),
+  changePassword,
 };

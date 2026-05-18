@@ -13,6 +13,7 @@ const FtSidebar = ({ active, onSignOut }) => {
     { key: 'employees', label: 'Employees',     icon: 'users', path: '/employees' },
     { key: 'distributions', label: 'Distributions', icon: 'pie-chart', path: '/distributions' },
     { key: 'absences', label: 'Absences',       icon: 'calendar-x', path: '/absences' },
+    { key: 'settings', label: 'Settings',       icon: 'settings', path: '/dashboard/settings' },
   ];
   return (
     <aside className="sidebar">
