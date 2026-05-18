@@ -234,6 +234,9 @@ select.inp {
 /* ---------- Misc ---------- */
 .row { display: flex; gap: 12px; align-items: center; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.dashboard-stats .stat .value { overflow-wrap: anywhere; }
+.dashboard-stats .stat:last-child .value { font-size: 24px; line-height: 30px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .hr { height: 1px; background: var(--border); border: 0; margin: 16px 0; }
 .muted { color: var(--fg-muted); }

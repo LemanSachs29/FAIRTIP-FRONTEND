@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployees } from '../services/employees.js';
 import { getDistributions } from '../services/distributions.js';
+import { getUpcomingUkHoliday } from '../services/holidays.js';
 
 // Fairtip — Dashboard screen
 const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
@@ -8,6 +9,9 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [upcomingHoliday, setUpcomingHoliday] = useState(null);
+  const [holidayLoading, setHolidayLoading] = useState(true);
+  const [holidayError, setHolidayError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +34,33 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchUpcomingHoliday = async () => {
+      try {
+        setHolidayLoading(true);
+        setHolidayError(null);
+        const holiday = await getUpcomingUkHoliday();
+        setUpcomingHoliday(holiday);
+      } catch (err) {
+        setHolidayError(err.message || 'Failed to load public holiday');
+      } finally {
+        setHolidayLoading(false);
+      }
+    };
+
+    fetchUpcomingHoliday();
+  }, []);
+
   const formatCurrency = (value) => `€${value}`;
+
+  const formatHolidayDate = (date) => {
+    const [year, month, day] = date.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString('en-GB', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   const formatDateRange = (startDate, endDate) => {
     const start = new Date(startDate);
@@ -94,6 +124,24 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
     sub: "Registered employees"
   };
 
+  const holidayCard = holidayLoading ? {
+    label: "Upcoming UK public holiday",
+    value: "Loading...",
+    sub: ""
+  } : holidayError ? {
+    label: "Upcoming UK public holiday",
+    value: "Unable to load",
+    sub: holidayError
+  } : upcomingHoliday ? {
+    label: "Upcoming UK public holiday",
+    value: upcomingHoliday.name,
+    sub: formatHolidayDate(upcomingHoliday.date)
+  } : {
+    label: "Upcoming UK public holiday",
+    value: "No upcoming holidays",
+    sub: "No more 2026 UK public holidays"
+  };
+
   return (
     <div>
       <div className="page-h">
@@ -106,10 +154,11 @@ const FtDashboard = ({ onNewDistribution, onOpenDistribution }) => {
         </div>
       </div>
 
-      <div className="grid-3" style={{marginBottom: 20}}>
+      <div className="grid-3 dashboard-stats" style={{marginBottom: 20}}>
         <FtStat label={card1.label} value={card1.value} sub={card1.sub} />
         <FtStat label={card2.label} value={card2.value} sub={card2.sub} />
         <FtStat label={card3.label} value={card3.value} sub={card3.sub} />
+        <FtStat label={holidayCard.label} value={holidayCard.value} sub={holidayCard.sub} />
       </div>
 
       <FtCard
